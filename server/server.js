@@ -31,7 +31,7 @@ const config = {
     dbUser: process.env.DB_USER || 'root',
     dbPassword: process.env.DB_PASSWORD || 'abhayd95',
     dbConnectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT) || 10,
-    deviceToken: process.env.DEVICE_TOKEN || 'default_token',
+    deviceToken: process.env.DEVICE_TOKEN || 'test_token_123',
     historyPoints: parseInt(process.env.HISTORY_POINTS) || 500,
     onlineWindowS: parseInt(process.env.ONLINE_WINDOW_S) || 60,
     pollIntervalMs: parseInt(process.env.POLL_INTERVAL_MS) || 5000,
@@ -40,8 +40,8 @@ const config = {
     mqttPort: parseInt(process.env.MQTT_PORT) || 1883,
     mqttUsername: process.env.MQTT_USERNAME || '',
     mqttPassword: process.env.MQTT_PASSWORD || '',
-    rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000, // 15 minutes
-    rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+    rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 60000, // 1 minute
+    rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000, // Much higher for development
     logLevel: process.env.LOG_LEVEL || 'info'
 };
 

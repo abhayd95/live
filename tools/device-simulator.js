@@ -25,7 +25,7 @@ class DeviceSimulator {
             mqttPort: options.mqttPort || 1883,
             mqttUsername: options.mqttUsername || '',
             mqttPassword: options.mqttPassword || '',
-            deviceToken: options.token || 'default_token',
+            deviceToken: options.token || 'test_token_123',
             startLat: options.startLat || 40.7128,
             startLng: options.startLng || -74.0060,
             radius: options.radius || 1000, // meters
