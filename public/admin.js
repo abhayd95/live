@@ -14,12 +14,12 @@ class AdminDashboard extends GPSTrackerDashboard {
 
     async init() {
         console.log('Initializing Admin Dashboard...');
-        
+
         // Check authentication and admin role
         if (!this.checkAuthentication()) {
             return;
         }
-        
+
         // Verify admin role
         if (this.currentUser.role !== 'admin') {
             console.log('Access denied: Admin role required');
@@ -29,7 +29,7 @@ class AdminDashboard extends GPSTrackerDashboard {
             }, 2000);
             return;
         }
-        
+
         this.initMap();
         this.setupEventListeners();
         this.setupMobileNavigation();
@@ -44,7 +44,7 @@ class AdminDashboard extends GPSTrackerDashboard {
         // User Management Modal
         const userManagementBtn = document.getElementById('manageUsers');
         const userManagementModal = document.getElementById('userManagementModal');
-        
+
         if (userManagementBtn && userManagementModal) {
             userManagementBtn.addEventListener('click', () => {
                 this.showModal('userManagementModal');
@@ -55,7 +55,7 @@ class AdminDashboard extends GPSTrackerDashboard {
         // System Settings Modal
         const systemSettingsBtn = document.getElementById('systemSettings');
         const systemSettingsModal = document.getElementById('systemSettingsModal');
-        
+
         if (systemSettingsBtn && systemSettingsModal) {
             systemSettingsBtn.addEventListener('click', () => {
                 this.showModal('systemSettingsModal');
@@ -141,7 +141,7 @@ class AdminDashboard extends GPSTrackerDashboard {
             if (!response || !response.ok) {
                 throw new Error('Failed to load users');
             }
-            
+
             const users = await response.json();
             this.displayUsers(users);
         } catch (error) {
@@ -232,7 +232,7 @@ class AdminDashboard extends GPSTrackerDashboard {
     async exportSystemData() {
         try {
             this.showNotification('Exporting system data...', 'info');
-            
+
             const response = await this.authenticatedFetch('/api/admin/export-data', {
                 method: 'GET'
             });
@@ -262,7 +262,7 @@ class AdminDashboard extends GPSTrackerDashboard {
         // Create a simple prompt for now
         const deviceId = prompt('Enter device ID:');
         const deviceName = prompt('Enter device name:');
-        
+
         if (deviceId && deviceName) {
             this.addDevice(deviceId, deviceName);
         }
@@ -302,13 +302,13 @@ class AdminDashboard extends GPSTrackerDashboard {
                 <span>${message}</span>
             </div>
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.classList.add('show');
         }, 100);
-        
+
         setTimeout(() => {
             notification.classList.remove('show');
             setTimeout(() => {
@@ -335,13 +335,13 @@ class AdminDashboard extends GPSTrackerDashboard {
     // Override device display for admin features
     displayDevices(devices) {
         super.displayDevices(devices);
-        
+
         // Add admin-specific device actions
         const deviceItems = document.querySelectorAll('.device-item');
         deviceItems.forEach(item => {
             const deviceId = item.dataset.deviceId;
             const actionsContainer = item.querySelector('.device-info');
-            
+
             if (actionsContainer && !item.querySelector('.device-actions')) {
                 const actions = document.createElement('div');
                 actions.className = 'device-actions';

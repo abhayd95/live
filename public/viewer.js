@@ -15,12 +15,12 @@ class ViewerDashboard extends GPSTrackerDashboard {
 
     async init() {
         console.log('Initializing Viewer Dashboard...');
-        
+
         // Check authentication and viewer role
         if (!this.checkAuthentication()) {
             return;
         }
-        
+
         // Verify viewer role (viewers can access all dashboards)
         if (!['admin', 'user', 'viewer'].includes(this.currentUser.role)) {
             console.log('Access denied: Valid role required');
@@ -30,7 +30,7 @@ class ViewerDashboard extends GPSTrackerDashboard {
             }, 2000);
             return;
         }
-        
+
         this.initMap();
         this.setupEventListeners();
         this.setupMobileNavigation();
@@ -94,7 +94,7 @@ class ViewerDashboard extends GPSTrackerDashboard {
         if (this.autoRefreshInterval) {
             clearInterval(this.autoRefreshInterval);
         }
-        
+
         this.autoRefreshInterval = setInterval(() => {
             this.refreshData();
         }, 30000); // Refresh every 30 seconds
@@ -153,7 +153,7 @@ class ViewerDashboard extends GPSTrackerDashboard {
 
     toggleLabels(enabled) {
         this.showLabels = enabled;
-        
+
         // Update all markers to show/hide labels
         this.markers.forEach((marker, deviceId) => {
             if (enabled) {
@@ -167,20 +167,20 @@ class ViewerDashboard extends GPSTrackerDashboard {
                 marker.unbindTooltip();
             }
         });
-        
+
         this.showNotification(`Labels ${enabled ? 'enabled' : 'disabled'}`, 'info');
     }
 
     // Override device display to show read-only information
     displayDevices(devices) {
-        const deviceList = document.getElementById('deviceList');
-        if (!deviceList) return;
+            const deviceList = document.getElementById('deviceList');
+            if (!deviceList) return;
 
-        deviceList.innerHTML = devices.map(device => {
-            const position = this.devicePositions.get(device.device_id);
-            const isOnline = position && (Date.now() - position.ts) < (60 * 1000); // Online if updated within last minute
-            
-            return `
+            deviceList.innerHTML = devices.map(device => {
+                        const position = this.devicePositions.get(device.device_id);
+                        const isOnline = position && (Date.now() - position.ts) < (60 * 1000); // Online if updated within last minute
+
+                        return `
                 <div class="device-item viewer" data-device-id="${device.device_id}">
                     <div class="device-info">
                         <div class="device-header">

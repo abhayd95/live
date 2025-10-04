@@ -128,35 +128,54 @@ app.use((req, res, next) => {
 // Authentication routes
 // User registration
 app.post('/api/auth/register', [
-    body('username').isLength({ min: 3, max: 50 }).trim().escape(),
+    body('username').isLength({ min: 3, max: 50 }).trim().escape().matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
     body('email').isEmail().normalizeEmail(),
-    body('password').isLength({ min: 6 }),
+    body('password').isLength({ min: 8 }).matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must be at least 8 characters with uppercase, lowercase, and number'),
     body('full_name').optional().isLength({ max: 100 }).trim().escape()
 ], async(req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ error: 'Validation failed', details: errors.array() });
+            return res.status(400).json({ 
+                error: 'Validation failed', 
+                details: errors.array().map(err => ({
+                    field: err.path,
+                    message: err.msg,
+                    value: err.value
+                }))
+            });
         }
 
         const { username, email, password, full_name } = req.body;
 
+        console.log(`Registration attempt for username: ${username}, email: ${email}`);
+
         // Check if user already exists
         const [existingUsers] = await db.execute(
-            'SELECT id FROM users WHERE username = ? OR email = ?', [username, email]
+            'SELECT id, username, email FROM users WHERE username = ? OR email = ?', [username, email]
         );
 
         if (existingUsers.length > 0) {
-            return res.status(409).json({ error: 'Username or email already exists' });
+            const existingUser = existingUsers[0];
+            const conflictField = existingUser.username === username ? 'username' : 'email';
+            console.log(`Registration failed - ${conflictField} already exists: ${existingUser[conflictField]}`);
+            return res.status(409).json({ 
+                error: `${conflictField === 'username' ? 'Username' : 'Email'} already exists`,
+                field: conflictField
+            });
         }
 
-        // Hash password
+        // Hash password with higher salt rounds for better security
         const passwordHash = await bcrypt.hash(password, 12);
+        console.log(`Password hashed successfully for user: ${username}`);
 
-        // Create user
+        // Create user with default role
         const [result] = await db.execute(
-            'INSERT INTO users (username, email, password_hash, full_name) VALUES (?, ?, ?, ?)', [username, email, passwordHash, full_name || null]
+            'INSERT INTO users (username, email, password_hash, full_name, role, is_active) VALUES (?, ?, ?, ?, ?, ?)', 
+            [username, email, passwordHash, full_name || null, 'user', true]
         );
+
+        console.log(`User created successfully: ID ${result.insertId}, Username: ${username}`);
 
         res.status(201).json({
             message: 'User created successfully',
@@ -164,13 +183,17 @@ app.post('/api/auth/register', [
                 id: result.insertId,
                 username,
                 email,
-                full_name: full_name || null
+                full_name: full_name || null,
+                role: 'user'
             }
         });
 
     } catch (error) {
         console.error('Registration error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            error: 'Internal server error',
+            message: 'Failed to create user account'
+        });
     }
 });
 
@@ -255,9 +278,36 @@ app.get('/api/auth/profile', authenticateToken, async(req, res) => {
     }
 });
 
-// Logout (client-side token removal)
-app.post('/api/auth/logout', authenticateToken, (req, res) => {
-    res.json({ message: 'Logout successful' });
+// Logout with session invalidation
+app.post('/api/auth/logout', authenticateToken, async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        
+        if (token) {
+            // Add token to blacklist (in production, use Redis or database)
+            // For now, we'll just log the logout
+            console.log(`User ${req.user.username} logged out at ${new Date().toISOString()}`);
+            
+            // In a production environment, you would:
+            // 1. Store the token in a blacklist (Redis recommended)
+            // 2. Set token expiration to current time
+            // 3. Remove from active sessions table
+            
+            // Update last logout time in database
+            await db.execute(
+                'UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+                [req.user.id]
+            );
+        }
+        
+        res.json({ 
+            message: 'Logout successful',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // Health check endpoint

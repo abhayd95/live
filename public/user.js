@@ -14,12 +14,12 @@ class UserDashboard extends GPSTrackerDashboard {
 
     async init() {
         console.log('Initializing User Dashboard...');
-        
+
         // Check authentication and user role
         if (!this.checkAuthentication()) {
             return;
         }
-        
+
         // Verify user role
         if (!['admin', 'user'].includes(this.currentUser.role)) {
             console.log('Access denied: User role required');
@@ -29,7 +29,7 @@ class UserDashboard extends GPSTrackerDashboard {
             }, 2000);
             return;
         }
-        
+
         this.initMap();
         this.setupEventListeners();
         this.setupMobileNavigation();
@@ -44,7 +44,7 @@ class UserDashboard extends GPSTrackerDashboard {
         // Add Device Modal
         const addDeviceBtn = document.getElementById('addMyDevice');
         const addDeviceModal = document.getElementById('addDeviceModal');
-        
+
         if (addDeviceBtn && addDeviceModal) {
             addDeviceBtn.addEventListener('click', () => {
                 this.showModal('addDeviceModal');
@@ -137,16 +137,16 @@ class UserDashboard extends GPSTrackerDashboard {
         const deviceId = document.getElementById('deviceId');
         const deviceName = document.getElementById('deviceName');
         const deviceDescription = document.getElementById('deviceDescription');
-        
+
         if (deviceId) deviceId.value = '';
         if (deviceName) deviceName.value = '';
         if (deviceDescription) deviceDescription.value = '';
     }
 
     async saveDevice() {
-        const deviceId = document.getElementById('deviceId')?.value.trim();
-        const deviceName = document.getElementById('deviceName')?.value.trim();
-        const deviceDescription = document.getElementById('deviceDescription')?.value.trim();
+        const deviceId = document.getElementById('deviceId') ? .value.trim();
+        const deviceName = document.getElementById('deviceName') ? .value.trim();
+        const deviceDescription = document.getElementById('deviceDescription') ? .value.trim();
 
         if (!deviceId || !deviceName) {
             this.showNotification('Please fill in device ID and name', 'warning');
@@ -179,7 +179,7 @@ class UserDashboard extends GPSTrackerDashboard {
     async exportMyData() {
         try {
             this.showNotification('Exporting your data...', 'info');
-            
+
             const response = await this.authenticatedFetch('/api/user/export-data', {
                 method: 'GET'
             });
@@ -246,13 +246,13 @@ class UserDashboard extends GPSTrackerDashboard {
                 <span>${message}</span>
             </div>
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.classList.add('show');
         }, 100);
-        
+
         setTimeout(() => {
             notification.classList.remove('show');
             setTimeout(() => {
@@ -289,7 +289,7 @@ class UserDashboard extends GPSTrackerDashboard {
 
             const data = await response.json();
             this.myDevices.clear();
-            
+
             // Store user's devices
             data.devices.forEach(device => {
                 this.myDevices.set(device.device_id, device);
@@ -325,7 +325,7 @@ class UserDashboard extends GPSTrackerDashboard {
             }
 
             const stats = await response.json();
-            
+
             // Update user-specific stats
             document.getElementById('myDevices').textContent = stats.totalDevices || 0;
             document.getElementById('onlineDevices').textContent = stats.onlineDevices || 0;
@@ -340,13 +340,13 @@ class UserDashboard extends GPSTrackerDashboard {
     // Override device display for user features
     displayDevices(devices) {
         super.displayDevices(devices);
-        
+
         // Add user-specific device actions
         const deviceItems = document.querySelectorAll('.device-item');
         deviceItems.forEach(item => {
             const deviceId = item.dataset.deviceId;
             const actionsContainer = item.querySelector('.device-info');
-            
+
             if (actionsContainer && !item.querySelector('.device-actions.user')) {
                 const actions = document.createElement('div');
                 actions.className = 'device-actions user';

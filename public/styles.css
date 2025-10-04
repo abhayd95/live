@@ -202,7 +202,9 @@ body {
     color: #ff6b6b !important;
 }
 
+
 /* Notifications */
+
 .logout-notification,
 .access-denied-notification {
     position: fixed;

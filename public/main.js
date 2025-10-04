@@ -75,12 +75,12 @@ class GPSTrackerDashboard {
             this.authToken = token;
             this.currentUser = JSON.parse(user);
             console.log('User authenticated:', this.currentUser.username, 'Role:', this.currentUser.role);
-            
+
             // Check role-based access
             if (!this.checkRoleAccess()) {
                 return false;
             }
-            
+
             // Add user info to header
             this.updateUserInfo();
             return true;
@@ -94,22 +94,22 @@ class GPSTrackerDashboard {
     checkRoleAccess() {
         const currentPath = window.location.pathname;
         const userRole = this.currentUser.role;
-        
+
         // Define role-based access rules
         const roleAccess = {
             'admin': ['/', '/admin.html', '/user.html', '/viewer.html', '/profile.html', '/settings.html'],
             'user': ['/', '/user.html', '/viewer.html', '/profile.html', '/settings.html'],
             'viewer': ['/', '/viewer.html', '/profile.html']
         };
-        
+
         // Check if user has access to current page
         const allowedPages = roleAccess[userRole] || [];
         const hasAccess = allowedPages.includes(currentPath) || currentPath === '/index.html';
-        
+
         if (!hasAccess) {
             console.log(`Access denied for role '${userRole}' to '${currentPath}'`);
             this.showAccessDeniedMessage();
-            
+
             // Redirect to appropriate page based on role
             setTimeout(() => {
                 switch (userRole) {
@@ -126,10 +126,10 @@ class GPSTrackerDashboard {
                         window.location.href = '/';
                 }
             }, 2000);
-            
+
             return false;
         }
-        
+
         // Redirect to role-specific page if on generic dashboard
         if (currentPath === '/' || currentPath === '/index.html') {
             setTimeout(() => {
@@ -146,7 +146,7 @@ class GPSTrackerDashboard {
                 }
             }, 100);
         }
-        
+
         return true;
     }
 
@@ -165,13 +165,13 @@ class GPSTrackerDashboard {
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.classList.add('show');
         }, 100);
-        
+
         setTimeout(() => {
             notification.classList.remove('show');
             setTimeout(() => {
@@ -301,13 +301,13 @@ class GPSTrackerDashboard {
                     </div>
                 </div>
             `;
-            
+
             // Insert before connection status
             const connectionStatus = document.querySelector('.connection-status');
             if (connectionStatus) {
                 headerRight.insertBefore(userMenu, connectionStatus);
             }
-            
+
             // Add event listeners
             this.setupUserMenuEvents();
         }
@@ -354,18 +354,18 @@ class GPSTrackerDashboard {
             const response = await this.authenticatedFetch('/api/auth/logout', {
                 method: 'POST'
             });
-            
+
             if (response && response.ok) {
                 console.log('Logout successful');
             }
         } catch (error) {
             console.log('Logout API call failed, proceeding with local logout');
         }
-        
+
         // Clear authentication data
         localStorage.removeItem('gps_tracker_token');
         localStorage.removeItem('gps_tracker_user');
-        
+
         // Clear any ongoing connections
         if (this.ws) {
             this.ws.close();
@@ -373,10 +373,10 @@ class GPSTrackerDashboard {
         if (this.pollingInterval) {
             clearInterval(this.pollingInterval);
         }
-        
+
         // Show logout message
         this.showLogoutMessage();
-        
+
         // Redirect to login after a short delay
         setTimeout(() => {
             window.location.href = 'login.html';
@@ -395,14 +395,14 @@ class GPSTrackerDashboard {
                 <span>Logged out successfully</span>
             </div>
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         // Animate in
         setTimeout(() => {
             notification.classList.add('show');
         }, 100);
-        
+
         // Remove after animation
         setTimeout(() => {
             notification.classList.remove('show');

@@ -275,6 +275,9 @@ class AuthManager {
         if (!data.username || data.username.length < 3) {
             this.showError('usernameError', 'Username must be at least 3 characters');
             isValid = false;
+        } else if (!/^[a-zA-Z0-9_]+$/.test(data.username)) {
+            this.showError('usernameError', 'Username can only contain letters, numbers, and underscores');
+            isValid = false;
         }
 
         if (!data.email || !this.isValidEmail(data.email)) {
@@ -282,8 +285,11 @@ class AuthManager {
             isValid = false;
         }
 
-        if (!data.password || data.password.length < 6) {
-            this.showError('passwordError', 'Password must be at least 6 characters');
+        if (!data.password || data.password.length < 8) {
+            this.showError('passwordError', 'Password must be at least 8 characters');
+            isValid = false;
+        } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(data.password)) {
+            this.showError('passwordError', 'Password must contain uppercase, lowercase, and number');
             isValid = false;
         }
 

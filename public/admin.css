@@ -1,6 +1,8 @@
 /* Admin Dashboard Specific Styles */
 
+
 /* Admin Controls */
+
 .admin-controls {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -96,7 +98,9 @@
     height: 16px;
 }
 
+
 /* Modal Styles */
+
 .modal {
     display: none;
     position: fixed;
@@ -174,7 +178,9 @@
     overflow-y: auto;
 }
 
+
 /* User Management */
+
 .user-management {
     display: flex;
     flex-direction: column;
@@ -277,7 +283,9 @@
     height: 14px;
 }
 
+
 /* Settings Form */
+
 .settings-form {
     display: flex;
     flex-direction: column;
@@ -310,7 +318,9 @@
     box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
 }
 
+
 /* Device Management Enhancements */
+
 .device-item.admin {
     border-left: 4px solid var(--primary-gold);
 }
@@ -355,7 +365,9 @@
     height: 12px;
 }
 
+
 /* Enhanced Stats */
+
 .stats-grid.admin {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
@@ -387,7 +399,9 @@
     color: var(--primary-gold);
 }
 
+
 /* Role Badge in Header */
+
 .header-title::after {
     content: "ADMIN";
     display: inline-block;
@@ -402,50 +416,45 @@
     letter-spacing: 0.5px;
 }
 
+
 /* Mobile Responsive for Admin */
+
 @media (max-width: 768px) {
     .admin-controls {
         grid-template-columns: 1fr;
         gap: 0.5rem;
     }
-    
     .admin-btn {
         padding: 0.625rem 0.875rem;
         font-size: 0.85rem;
     }
-    
     .modal-content {
         width: 95%;
         margin: 1rem;
     }
-    
     .modal-header,
     .modal-body {
         padding: 1rem;
     }
-    
     .user-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.75rem;
     }
-    
     .user-actions {
         align-self: stretch;
         justify-content: space-between;
     }
-    
     .device-actions {
         flex-wrap: wrap;
     }
-    
     .stats-grid.admin {
         grid-template-columns: 1fr;
         gap: 0.75rem;
     }
-    
     .header-title::after {
-        display: none; /* Hide on mobile to save space */
+        display: none;
+        /* Hide on mobile to save space */
     }
 }
 
@@ -455,22 +464,18 @@
         font-size: 0.8rem;
         min-height: 40px;
     }
-    
     .admin-btn svg {
         width: 14px;
         height: 14px;
     }
-    
     .user-action-btn,
     .device-action-btn {
         padding: 0.25rem 0.5rem;
         font-size: 0.75rem;
     }
-    
     .stat-item.admin {
         padding: 0.75rem;
     }
-    
     .stat-item.admin .stat-value {
         font-size: 1.25rem;
     }

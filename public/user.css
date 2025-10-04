@@ -1,6 +1,8 @@
 /* User Dashboard Specific Styles */
 
+
 /* User Actions */
+
 .user-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -51,7 +53,9 @@
     border-color: var(--primary-gold);
 }
 
+
 /* Modal Styles */
+
 .modal {
     display: none;
     position: fixed;
@@ -129,7 +133,9 @@
     overflow-y: auto;
 }
 
+
 /* Add Device Form */
+
 .add-device-form {
     display: flex;
     flex-direction: column;
@@ -170,7 +176,9 @@
     resize: vertical;
 }
 
+
 /* Enhanced Stats for User */
+
 .stats-grid.user {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
@@ -202,7 +210,9 @@
     color: var(--primary-gold);
 }
 
+
 /* Device Items for User */
+
 .device-item.user {
     border-left: 4px solid #3498db;
 }
@@ -247,7 +257,9 @@
     height: 12px;
 }
 
+
 /* Role Badge in Header */
+
 .header-title::after {
     content: "USER";
     display: inline-block;
@@ -262,7 +274,9 @@
     letter-spacing: 0.5px;
 }
 
+
 /* Notifications */
+
 .notification {
     position: fixed;
     top: 2rem;
@@ -325,35 +339,33 @@
     color: #f39c12;
 }
 
+
 /* Mobile Responsive for User */
+
 @media (max-width: 768px) {
     .user-actions {
         grid-template-columns: 1fr;
         gap: 0.5rem;
     }
-    
     .user-btn {
         padding: 0.625rem 0.875rem;
         font-size: 0.85rem;
     }
-    
     .modal-content {
         width: 95%;
         margin: 1rem;
     }
-    
     .modal-header,
     .modal-body {
         padding: 1rem;
     }
-    
     .stats-grid.user {
         grid-template-columns: 1fr;
         gap: 0.75rem;
     }
-    
     .header-title::after {
-        display: none; /* Hide on mobile to save space */
+        display: none;
+        /* Hide on mobile to save space */
     }
 }
 
@@ -363,21 +375,17 @@
         font-size: 0.8rem;
         min-height: 40px;
     }
-    
     .user-btn svg {
         width: 14px;
         height: 14px;
     }
-    
     .device-action-btn.user {
         padding: 0.25rem 0.5rem;
         font-size: 0.75rem;
     }
-    
     .stat-item.user {
         padding: 0.75rem;
     }
-    
     .stat-item.user .stat-value {
         font-size: 1.25rem;
     }
