@@ -155,6 +155,8 @@ LEFT JOIN latest_positions lp ON d.device_id = lp.device_id;
 -- =============================================================================
 
 -- Update device last_seen when position is inserted
+-- Drop trigger if it exists, then create it
+DROP TRIGGER IF EXISTS update_device_last_seen;
 DELIMITER $$
 CREATE TRIGGER update_device_last_seen
 AFTER INSERT ON positions
@@ -174,6 +176,8 @@ END$$
 DELIMITER ;
 
 -- Update device stats when position is inserted
+-- Drop trigger if it exists, then create it
+DROP TRIGGER IF EXISTS update_device_stats;
 DELIMITER $$
 CREATE TRIGGER update_device_stats
 AFTER INSERT ON positions
