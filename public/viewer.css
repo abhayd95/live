@@ -1,0 +1,342 @@
+/* Viewer Dashboard Specific Styles */
+
+/* View Options */
+.view-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.option-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.checkbox-wrapper:hover {
+    background: rgba(46, 204, 113, 0.1);
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    accent-color: #2ecc71;
+}
+
+.checkbox-label {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    user-select: none;
+}
+
+/* Read Only Badge */
+.read-only-badge {
+    background: #2ecc71;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Viewer Info Panel */
+.viewer-info-panel {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    border-radius: var(--border-radius);
+    backdrop-filter: blur(10px);
+    max-width: 300px;
+    z-index: 1000;
+    animation: slideInFromLeft 0.5s ease;
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.info-content {
+    padding: 1rem;
+}
+
+.info-content h4 {
+    margin: 0 0 0.5rem;
+    color: #2ecc71;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.info-content p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* Device Items for Viewer */
+.device-item.viewer {
+    border-left: 4px solid #2ecc71;
+    cursor: default;
+}
+
+.device-item.viewer:hover {
+    background: rgba(46, 204, 113, 0.05);
+    border-color: #27ae60;
+}
+
+.device-item.viewer .device-status {
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+}
+
+.device-item.viewer .device-info {
+    pointer-events: none; /* Disable interactions */
+}
+
+/* Enhanced Stats for Viewer */
+.stats-grid.viewer {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.stat-item.viewer {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.stat-item.viewer:hover {
+    border-color: #2ecc71;
+    background: rgba(46, 204, 113, 0.05);
+}
+
+.stat-item.viewer .stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-item.viewer .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2ecc71;
+}
+
+/* Role Badge in Header */
+.header-title::after {
+    content: "VIEWER";
+    display: inline-block;
+    margin-left: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    background: #2ecc71;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Disabled States for Viewer */
+.viewer .admin-btn,
+.viewer .user-btn,
+.viewer .add-btn {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.viewer .search-input {
+    background: var(--bg-primary);
+    opacity: 0.8;
+}
+
+/* Floating Controls for Viewer */
+.floating-controls .control-btn {
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    color: #2ecc71;
+}
+
+.floating-controls .control-btn:hover {
+    background: rgba(46, 204, 113, 0.2);
+    border-color: #2ecc71;
+    color: #27ae60;
+}
+
+/* Connection Status for Viewer */
+.connection-status.viewer {
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.status-dot.viewer {
+    background: #2ecc71;
+}
+
+/* Auto-hide info panel */
+.viewer-info-panel {
+    animation: autoHide 10s ease-in-out;
+}
+
+@keyframes autoHide {
+    0%, 80% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0.3;
+        transform: translateX(-50%);
+    }
+}
+
+.viewer-info-panel:hover {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    animation: none;
+}
+
+/* Mobile Responsive for Viewer */
+@media (max-width: 768px) {
+    .viewer-info-panel {
+        top: 0.5rem;
+        left: 0.5rem;
+        right: 0.5rem;
+        max-width: none;
+    }
+    
+    .info-content {
+        padding: 0.75rem;
+    }
+    
+    .info-content h4 {
+        font-size: 0.9rem;
+    }
+    
+    .info-content p {
+        font-size: 0.8rem;
+    }
+    
+    .stats-grid.viewer {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .header-title::after {
+        display: none; /* Hide on mobile to save space */
+    }
+    
+    .view-options {
+        gap: 0.75rem;
+    }
+    
+    .option-group {
+        gap: 0.375rem;
+    }
+    
+    .checkbox-wrapper {
+        padding: 0.375rem;
+    }
+    
+    .checkbox-label {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .viewer-info-panel {
+        position: relative;
+        top: 0;
+        left: 0;
+        right: 0;
+        margin: 0.5rem;
+        animation: none;
+    }
+    
+    .stat-item.viewer {
+        padding: 0.75rem;
+    }
+    
+    .stat-item.viewer .stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .read-only-badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.4rem;
+    }
+}
+
+/* Print Styles for Viewer */
+@media print {
+    .viewer-info-panel {
+        display: none;
+    }
+    
+    .floating-controls {
+        display: none;
+    }
+    
+    .sidebar {
+        display: none;
+    }
+    
+    .map-container {
+        width: 100% !important;
+        height: 100vh !important;
+    }
+    
+    .header {
+        display: none;
+    }
+}
+
+/* High Contrast Mode for Accessibility */
+@media (prefers-contrast: high) {
+    .viewer-info-panel {
+        background: #000;
+        border: 2px solid #2ecc71;
+    }
+    
+    .device-item.viewer {
+        border-left: 6px solid #2ecc71;
+    }
+    
+    .stat-item.viewer {
+        border: 2px solid #2ecc71;
+    }
+}
+
+/* Reduced Motion for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .viewer-info-panel {
+        animation: none;
+    }
+    
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}

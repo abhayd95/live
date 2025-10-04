@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GPS Tracker Viewer Dashboard">
+    <title>GPS Tracker - Viewer Dashboard</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d4af37'><path d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/></svg>">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="viewer.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle sidebar">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </button>
+                <h1 class="header-title">
+                    <svg class="header-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                    </svg> Viewer Dashboard
+                </h1>
+            </div>
+            <div class="header-right">
+                <!-- User menu will be inserted here by JavaScript -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- System Stats -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>System Overview</h3>
+                    <button class="refresh-btn" id="refreshStats" title="Refresh Stats">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="card-content">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Total Devices</div>
+                            <div class="stat-value" id="totalDevices">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Online Devices</div>
+                            <div class="stat-value" id="onlineDevices">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Active Sessions</div>
+                            <div class="stat-value" id="activeSessions">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">System Status</div>
+                            <div class="stat-value" id="systemStatus">Online</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Options -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>View Options</h3>
+                </div>
+                <div class="card-content">
+                    <div class="view-options">
+                        <div class="option-group">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="showTrails" checked>
+                                <span class="checkbox-label">Show Trails</span>
+                            </label>
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="showClusters">
+                                <span class="checkbox-label">Show Clusters</span>
+                            </label>
+                        </div>
+                        <div class="option-group">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="autoRefresh" checked>
+                                <span class="checkbox-label">Auto Refresh</span>
+                            </label>
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="showLabels">
+                                <span class="checkbox-label">Show Labels</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device List -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Devices</h3>
+                    <span class="read-only-badge">Read Only</span>
+                </div>
+                <div class="card-content">
+                    <div class="search-container">
+                        <input type="text" id="deviceSearch" class="search-input" placeholder="Search devices...">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                    </div>
+                    <div class="device-list" id="deviceList">
+                        <!-- Device items will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="map-container">
+            <div id="map"></div>
+            
+            <!-- Floating Controls -->
+            <div class="floating-controls">
+                <button class="control-btn" id="centerAllBtn" title="Center All Devices">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                </button>
+                <button class="control-btn" id="toggleTrailsBtn" title="Toggle Trails">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </button>
+                <button class="control-btn" id="toggleClustersBtn" title="Toggle Clustering">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </button>
+                <button class="control-btn" id="fullscreenBtn" title="Toggle Fullscreen">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Viewer Info Panel -->
+            <div class="viewer-info-panel">
+                <div class="info-content">
+                    <h4>Viewer Mode</h4>
+                    <p>You are viewing the GPS tracker in read-only mode. You can observe device locations and trails but cannot make changes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="main.js"></script>
+    <script src="viewer.js"></script>
+</body>
+
+</html>

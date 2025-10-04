@@ -64,17 +64,22 @@ class GPSTrackerDashboard {
         // Check if user is logged in
         const token = localStorage.getItem('gps_tracker_token');
         const user = localStorage.getItem('gps_tracker_user');
-        
+
         if (!token || !user) {
             console.log('No authentication token found, redirecting to login...');
             window.location.href = 'login.html';
             return false;
         }
-        
+
         try {
             this.authToken = token;
             this.currentUser = JSON.parse(user);
-            console.log('User authenticated:', this.currentUser.username);
+            console.log('User authenticated:', this.currentUser.username, 'Role:', this.currentUser.role);
+            
+            // Check role-based access
+            if (!this.checkRoleAccess()) {
+                return false;
+            }
             
             // Add user info to header
             this.updateUserInfo();
@@ -86,10 +91,190 @@ class GPSTrackerDashboard {
         }
     }
 
+    checkRoleAccess() {
+        const currentPath = window.location.pathname;
+        const userRole = this.currentUser.role;
+        
+        // Define role-based access rules
+        const roleAccess = {
+            'admin': ['/', '/admin.html', '/user.html', '/viewer.html', '/profile.html', '/settings.html'],
+            'user': ['/', '/user.html', '/viewer.html', '/profile.html', '/settings.html'],
+            'viewer': ['/', '/viewer.html', '/profile.html']
+        };
+        
+        // Check if user has access to current page
+        const allowedPages = roleAccess[userRole] || [];
+        const hasAccess = allowedPages.includes(currentPath) || currentPath === '/index.html';
+        
+        if (!hasAccess) {
+            console.log(`Access denied for role '${userRole}' to '${currentPath}'`);
+            this.showAccessDeniedMessage();
+            
+            // Redirect to appropriate page based on role
+            setTimeout(() => {
+                switch (userRole) {
+                    case 'admin':
+                        window.location.href = '/admin.html';
+                        break;
+                    case 'user':
+                        window.location.href = '/user.html';
+                        break;
+                    case 'viewer':
+                        window.location.href = '/viewer.html';
+                        break;
+                    default:
+                        window.location.href = '/';
+                }
+            }, 2000);
+            
+            return false;
+        }
+        
+        // Redirect to role-specific page if on generic dashboard
+        if (currentPath === '/' || currentPath === '/index.html') {
+            setTimeout(() => {
+                switch (userRole) {
+                    case 'admin':
+                        window.location.href = '/admin.html';
+                        break;
+                    case 'user':
+                        window.location.href = '/user.html';
+                        break;
+                    case 'viewer':
+                        window.location.href = '/viewer.html';
+                        break;
+                }
+            }, 100);
+        }
+        
+        return true;
+    }
+
+    showAccessDeniedMessage() {
+        const notification = document.createElement('div');
+        notification.className = 'access-denied-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                <div class="notification-text">
+                    <strong>Access Denied</strong>
+                    <p>You don't have permission to access this page.</p>
+                    <p>Redirecting to your dashboard...</p>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 4000);
+    }
+
+    generateRoleBasedMenu() {
+        const role = this.currentUser.role;
+        let menuItems = '';
+
+        // Common items for all roles
+        menuItems += `
+            <div class="dropdown-item" onclick="window.location.href='/profile.html'">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+                Profile
+            </div>
+        `;
+
+        // Role-specific items
+        switch (role) {
+            case 'admin':
+                menuItems += `
+                    <div class="dropdown-item" onclick="window.location.href='/admin.html'">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                        </svg>
+                        Admin Dashboard
+                    </div>
+                    <div class="dropdown-item" onclick="window.location.href='/user.html'">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H16c-.8 0-1.54.37-2.01 1.01L12 11l-1.99-1.99A2.5 2.5 0 0 0 8 8H5.46c-.8 0-1.54.37-2.01 1.01L1 13.5V22h2v-6h2.5l2.54-7.63A1.5 1.5 0 0 1 9.46 8H12c.8 0 1.54-.37 2.01-1.01L16 9l1.99 1.99A2.5 2.5 0 0 1 20 14h2v8h2z"/>
+                        </svg>
+                        User Dashboard
+                    </div>
+                    <div class="dropdown-item" onclick="window.location.href='/viewer.html'">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                        </svg>
+                        Viewer Dashboard
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" onclick="window.location.href='/settings.html'">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                        </svg>
+                        System Settings
+                    </div>
+                `;
+                break;
+            case 'user':
+                menuItems += `
+                    <div class="dropdown-item" onclick="window.location.href='/user.html'">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H16c-.8 0-1.54.37-2.01 1.01L12 11l-1.99-1.99A2.5 2.5 0 0 0 8 8H5.46c-.8 0-1.54.37-2.01 1.01L1 13.5V22h2v-6h2.5l2.54-7.63A1.5 1.5 0 0 1 9.46 8H12c.8 0 1.54-.37 2.01-1.01L16 9l1.99 1.99A2.5 2.5 0 0 1 20 14h2v8h2z"/>
+                        </svg>
+                        User Dashboard
+                    </div>
+                    <div class="dropdown-item" onclick="window.location.href='/viewer.html'">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                        </svg>
+                        Viewer Dashboard
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" onclick="window.location.href='/settings.html'">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                        </svg>
+                        Settings
+                    </div>
+                `;
+                break;
+            case 'viewer':
+                menuItems += `
+                    <div class="dropdown-item" onclick="window.location.href='/viewer.html'">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                        </svg>
+                        Viewer Dashboard
+                    </div>
+                `;
+                break;
+        }
+
+        return menuItems;
+    }
+
     updateUserInfo() {
         // Add user info to header if user is authenticated
         const headerRight = document.querySelector('.header-right');
         if (headerRight && this.currentUser) {
+            // Remove existing user menu if present
+            const existingUserMenu = document.querySelector('.user-menu');
+            if (existingUserMenu) {
+                existingUserMenu.remove();
+            }
+
             // Create user menu
             const userMenu = document.createElement('div');
             userMenu.className = 'user-menu';
@@ -98,11 +283,23 @@ class GPSTrackerDashboard {
                     <span class="user-name">${this.currentUser.username}</span>
                     <span class="user-role">${this.currentUser.role}</span>
                 </div>
-                <button class="logout-btn" id="logoutBtn" title="Logout">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
-                    </svg>
-                </button>
+                <div class="user-menu-dropdown">
+                    <button class="user-menu-toggle" id="userMenuToggle" title="User Menu">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 6.5V7.5C15 8.3 14.3 9 13.5 9S12 8.3 12 7.5V6.5L6 7V9L12 8.5V9.5C12 10.3 12.7 11 13.5 11S15 10.3 15 9.5V8.5L21 9ZM6 12V14L12 13.5V12.5C12 11.7 11.3 11 10.5 11S9 11.7 9 12.5V13.5L3 14V12L9 12.5V11.5C9 10.7 9.7 10 10.5 10S12 10.7 12 11.5V12.5L18 12V14L12 13.5V14.5C12 15.3 12.7 16 13.5 16S15 15.3 15 14.5V13.5L21 14V12L15 12.5V11.5C15 10.7 14.3 10 13.5 10S12 10.7 12 11.5V12.5L6 12Z"/>
+                        </svg>
+                    </button>
+                    <div class="user-dropdown-menu" id="userDropdownMenu">
+                        ${this.generateRoleBasedMenu()}
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item logout-item" id="logoutBtn">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                            </svg>
+                            Logout
+                        </div>
+                    </div>
+                </div>
             `;
             
             // Insert before connection status
@@ -111,21 +308,110 @@ class GPSTrackerDashboard {
                 headerRight.insertBefore(userMenu, connectionStatus);
             }
             
-            // Add logout event listener
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', () => this.logout());
-            }
+            // Add event listeners
+            this.setupUserMenuEvents();
         }
     }
 
-    logout() {
+    setupUserMenuEvents() {
+        const userMenuToggle = document.getElementById('userMenuToggle');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        if (userMenuToggle && userDropdownMenu) {
+            // Toggle dropdown menu
+            userMenuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdownMenu.classList.toggle('show');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.user-menu-dropdown')) {
+                    userDropdownMenu.classList.remove('show');
+                }
+            });
+
+            // Close dropdown on escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    userDropdownMenu.classList.remove('show');
+                }
+            });
+        }
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.logout();
+            });
+        }
+    }
+
+    async logout() {
+        try {
+            // Call logout API endpoint
+            const response = await this.authenticatedFetch('/api/auth/logout', {
+                method: 'POST'
+            });
+            
+            if (response && response.ok) {
+                console.log('Logout successful');
+            }
+        } catch (error) {
+            console.log('Logout API call failed, proceeding with local logout');
+        }
+        
         // Clear authentication data
         localStorage.removeItem('gps_tracker_token');
         localStorage.removeItem('gps_tracker_user');
         
-        // Redirect to login
-        window.location.href = 'login.html';
+        // Clear any ongoing connections
+        if (this.ws) {
+            this.ws.close();
+        }
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+        }
+        
+        // Show logout message
+        this.showLogoutMessage();
+        
+        // Redirect to login after a short delay
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
+    }
+
+    showLogoutMessage() {
+        // Create logout notification
+        const notification = document.createElement('div');
+        notification.className = 'logout-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                </svg>
+                <span>Logged out successfully</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+        
+        // Remove after animation
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 2000);
     }
 
     async authenticatedFetch(url, options = {}) {
