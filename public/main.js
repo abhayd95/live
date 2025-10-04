@@ -38,6 +38,9 @@ class GPSTrackerDashboard {
         // Setup event listeners
         this.setupEventListeners();
 
+        // Setup mobile navigation
+        this.setupMobileNavigation();
+
         // Load initial data
         await this.loadInitialData();
 
@@ -53,12 +56,25 @@ class GPSTrackerDashboard {
     initMap() {
         console.log('Initializing map...');
 
-        // Initialize Leaflet map
+        // Detect if device supports touch
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+        // Initialize Leaflet map with touch optimizations
         this.map = L.map('map', {
             center: [39.8283, -98.5795], // Center of USA
             zoom: 4,
             zoomControl: true,
-            attributionControl: true
+            attributionControl: true,
+            // Touch optimizations
+            tap: !isTouchDevice, // Disable tap delay on touch devices
+            touchZoom: isTouchDevice,
+            doubleClickZoom: !isTouchDevice, // Disable double-click zoom on touch
+            scrollWheelZoom: !isTouchDevice, // Disable scroll wheel zoom on touch
+            dragging: true,
+            // Performance optimizations
+            preferCanvas: true,
+            zoomSnap: 0.5,
+            zoomDelta: 0.5
         });
 
         // Add tile layer
@@ -126,6 +142,63 @@ class GPSTrackerDashboard {
         });
 
         console.log('Event listeners set up');
+    }
+
+    setupMobileNavigation() {
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.querySelector('.sidebar');
+        let isSidebarVisible = false;
+
+        if (mobileMenuToggle && sidebar) {
+            mobileMenuToggle.addEventListener('click', () => {
+                isSidebarVisible = !isSidebarVisible;
+                
+                if (isSidebarVisible) {
+                    sidebar.classList.remove('hidden');
+                    mobileMenuToggle.setAttribute('aria-expanded', 'true');
+                } else {
+                    sidebar.classList.add('hidden');
+                    mobileMenuToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            // Close sidebar when clicking on device items on mobile
+            const deviceList = document.getElementById('deviceList');
+            if (deviceList) {
+                deviceList.addEventListener('click', (e) => {
+                    const deviceItem = e.target.closest('.device-item');
+                    if (deviceItem && window.innerWidth <= 768) {
+                        setTimeout(() => {
+                            sidebar.classList.add('hidden');
+                            mobileMenuToggle.setAttribute('aria-expanded', 'false');
+                            isSidebarVisible = false;
+                        }, 300);
+                    }
+                });
+            }
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768 && isSidebarVisible) {
+                    if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+                        sidebar.classList.add('hidden');
+                        mobileMenuToggle.setAttribute('aria-expanded', 'false');
+                        isSidebarVisible = false;
+                    }
+                }
+            });
+
+            // Handle orientation change
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    this.handleResize();
+                    if (window.innerWidth > 768) {
+                        sidebar.classList.remove('hidden');
+                        isSidebarVisible = false;
+                    }
+                }, 100);
+            });
+        }
     }
 
     async loadInitialData() {

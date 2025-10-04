@@ -464,8 +464,8 @@ async function savePosition(position) {
             position.received_at
         ]);
 
-        // Prune old positions to maintain history limit
-        await prunePositions(position.device_id);
+        // Prune old positions to maintain history limit (temporarily disabled)
+        // await prunePositions(position.device_id);
 
     } catch (error) {
         console.error('Error saving position:', error);
@@ -481,19 +481,19 @@ async function prunePositions(device_id) {
             ORDER BY timestamp DESC 
             LIMIT ?
         `;
-        
-        const [keepRows] = await db.execute(keepQuery, [device_id, config.historyPoints]);
+
+        const [keepRows] = await db.execute(keepQuery, [device_id, parseInt(config.historyPoints)]);
         const keepIds = keepRows.map(row => row.id);
-        
+
         if (keepIds.length === 0) return;
-        
+
         // Delete positions not in the keep list
         const placeholders = keepIds.map(() => '?').join(',');
         const deleteQuery = `
             DELETE FROM positions 
             WHERE device_id = ? AND id NOT IN (${placeholders})
         `;
-        
+
         await db.execute(deleteQuery, [device_id, ...keepIds]);
 
     } catch (error) {
