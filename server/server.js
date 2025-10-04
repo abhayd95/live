@@ -474,19 +474,27 @@ async function savePosition(position) {
 
 async function prunePositions(device_id) {
     try {
-        const query = `
-            DELETE FROM positions 
-            WHERE device_id = ? AND id NOT IN (
-                SELECT id FROM (
-                    SELECT id FROM positions 
-                    WHERE device_id = ? 
-                    ORDER BY timestamp DESC 
-                    LIMIT ?
-                ) AS keep_ids
-            )
+        // Get the IDs to keep (most recent positions)
+        const keepQuery = `
+            SELECT id FROM positions 
+            WHERE device_id = ? 
+            ORDER BY timestamp DESC 
+            LIMIT ?
         `;
-
-        await db.execute(query, [device_id, device_id, config.historyPoints]);
+        
+        const [keepRows] = await db.execute(keepQuery, [device_id, config.historyPoints]);
+        const keepIds = keepRows.map(row => row.id);
+        
+        if (keepIds.length === 0) return;
+        
+        // Delete positions not in the keep list
+        const placeholders = keepIds.map(() => '?').join(',');
+        const deleteQuery = `
+            DELETE FROM positions 
+            WHERE device_id = ? AND id NOT IN (${placeholders})
+        `;
+        
+        await db.execute(deleteQuery, [device_id, ...keepIds]);
 
     } catch (error) {
         console.error('Error pruning positions:', error);
