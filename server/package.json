@@ -1,0 +1,39 @@
+{
+    "name": "gps-tracker-server",
+    "version": "1.0.0",
+    "description": "Real-time GPS tracking server with WebSocket and MQTT support",
+    "main": "server.js",
+    "scripts": {
+        "dev": "nodemon server.js",
+        "start": "node server.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "gps",
+        "tracking",
+        "realtime",
+        "websocket",
+        "mqtt",
+        "iot"
+    ],
+    "author": "GPS Tracker System",
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.18.2",
+        "ws": "^8.14.2",
+        "mysql2": "^3.6.5",
+        "cors": "^2.8.5",
+        "helmet": "^7.1.0",
+        "express-rate-limit": "^7.1.5",
+        "mqtt": "^5.3.4",
+        "dotenv": "^16.3.1",
+        "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.2"
+    },
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=8.0.0"
+    }
+}

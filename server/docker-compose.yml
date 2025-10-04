@@ -1,0 +1,222 @@
+# GPS Tracker System - Docker Compose Configuration
+# Includes server and MQTT broker (Eclipse Mosquitto)
+
+version: '3.8'
+
+services:
+  # GPS Tracker Server
+  gps-tracker-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: gps-tracker-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - PUBLIC_ORIGIN=http://localhost:3000
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=tracker_gps
+      - DB_USER=root
+      - DB_PASSWORD=abhayd95
+      - DB_CONNECTION_LIMIT=10
+      - DEVICE_TOKEN=${DEVICE_TOKEN:-default_token}
+      - HISTORY_POINTS=${HISTORY_POINTS:-500}
+      - ONLINE_WINDOW_S=${ONLINE_WINDOW_S:-60}
+      - POLL_INTERVAL_MS=${POLL_INTERVAL_MS:-5000}
+      - MQTT_ENABLED=true
+      - MQTT_BROKER_HOST=mosquitto
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=${MQTT_USERNAME:-mqtt_user}
+      - MQTT_PASSWORD=${MQTT_PASSWORD:-mqtt_password}
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=100
+      - LOG_LEVEL=info
+    volumes:
+      - gps-data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+    networks:
+      - gps-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gps-tracker.rule=Host(`gps-tracker.localhost`)"
+      - "traefik.http.routers.gps-tracker.entrypoints=web"
+      - "traefik.http.services.gps-tracker.loadbalancer.server.port=3000"
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: gps-tracker-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=abhayd95
+      - MYSQL_DATABASE=tracker_gps
+      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
+      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - gps-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    command: --default-authentication-plugin=mysql_native_password
+
+  # MQTT Broker (Eclipse Mosquitto)
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: gps-tracker-mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/logs:/mosquitto/logs
+    networks:
+      - gps-network
+    healthcheck:
+      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "test", "-m", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Redis (Optional - for session storage and caching)
+  redis:
+    image: redis:7-alpine
+    container_name: gps-tracker-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - gps-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: gps-tracker-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - gps-tracker-server
+    networks:
+      - gps-network
+    profiles:
+      - proxy
+
+  # Watchtower (Optional - for automatic updates)
+  watchtower:
+    image: containrrr/watchtower
+    container_name: gps-tracker-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=3600
+      - WATCHTOWER_INCLUDE_STOPPED=true
+    networks:
+      - gps-network
+    profiles:
+      - watchtower
+
+  # Prometheus (Optional - for monitoring)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: gps-tracker-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - gps-network
+    profiles:
+      - monitoring
+
+  # Grafana (Optional - for dashboards)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: gps-tracker-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - gps-network
+    profiles:
+      - monitoring
+
+# Named volumes for persistent data
+volumes:
+  gps-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data
+  mysql-data:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# Custom network
+networks:
+  gps-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
