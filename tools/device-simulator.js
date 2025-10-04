@@ -270,7 +270,7 @@ class DeviceSimulator {
             if (error) {
                 console.error(`❌ MQTT publish error for ${deviceId}:`, error.message);
             } else if (this.options.verbose) {
-                console.log(`📡 MQTT: ${deviceId} -> ${device.lat.toFixed(6)}, ${device.lng.toFixed(6)}`);
+                console.log(`📡 MQTT: ${deviceId} -> ${payload.lat.toFixed(6)}, ${payload.lng.toFixed(6)}`);
             }
         });
     }

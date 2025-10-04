@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GPS Tracker Login">
+    <title>GPS Tracker - Login</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d4af37'><path d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/></svg>">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth.css">
+</head>
+
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                </div>
+                <h1 class="auth-title">GPS Tracker</h1>
+                <p class="auth-subtitle">Sign in to your account</p>
+            </div>
+
+            <form class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label for="username" class="form-label">Username or Email</label>
+                    <input type="text" id="username" name="username" class="form-input" required autocomplete="username" placeholder="Enter your username or email">
+                    <div class="form-error" id="usernameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="password" name="password" class="form-input" required autocomplete="current-password" placeholder="Enter your password">
+                        <button type="button" class="password-toggle" id="passwordToggle">
+                            <svg class="eye-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="form-error" id="passwordError"></div>
+                </div>
+
+                <div class="form-options">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" id="rememberMe" name="rememberMe">
+                        <span class="checkbox-label">Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="auth-button" id="loginButton">
+                    <span class="button-text">Sign In</span>
+                    <div class="button-spinner" id="loginSpinner"></div>
+                </button>
+
+                <div class="form-error" id="generalError"></div>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="signup.html" class="auth-link">Sign up here</a></p>
+            </div>
+
+            <div class="demo-accounts">
+                <h3>Demo Accounts</h3>
+                <div class="demo-account">
+                    <strong>Admin:</strong> admin / password123
+                </div>
+                <div class="demo-account">
+                    <strong>User:</strong> demo / password123
+                </div>
+                <div class="demo-account">
+                    <strong>Viewer:</strong> viewer / password123
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+
+</html>

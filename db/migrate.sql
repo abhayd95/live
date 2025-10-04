@@ -207,6 +207,45 @@ DELIMITER ;
 -- SAMPLE DATA (Optional - for testing)
 -- =============================================================================
 
+-- Users table for authentication
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100),
+    role ENUM('admin', 'user', 'viewer') DEFAULT 'user',
+    is_active BOOLEAN DEFAULT TRUE,
+    last_login TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_username (username),
+    INDEX idx_email (email),
+    INDEX idx_role (role)
+);
+
+-- User sessions table for JWT token management
+CREATE TABLE IF NOT EXISTS user_sessions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token_hash VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    device_info TEXT,
+    ip_address VARCHAR(45),
+    is_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id),
+    INDEX idx_token_hash (token_hash),
+    INDEX idx_expires_at (expires_at)
+);
+
+-- Insert sample users for testing
+INSERT IGNORE INTO users (username, email, password_hash, full_name, role) VALUES
+('admin', 'admin@gpstracker.com', '$2b$10$rQZ8K9vJ2nL1mP4qR5sT6uV7wX8yZ9aB0cD1eF2gH3iJ4kL5mN6oP7qR8sT', 'System Administrator', 'admin'),
+('demo', 'demo@gpstracker.com', '$2b$10$rQZ8K9vJ2nL1mP4qR5sT6uV7wX8yZ9aB0cD1eF2gH3iJ4kL5mN6oP7qR8sT', 'Demo User', 'user'),
+('viewer', 'viewer@gpstracker.com', '$2b$10$rQZ8K9vJ2nL1mP4qR5sT6uV7wX8yZ9aB0cD1eF2gH3iJ4kL5mN6oP7qR8sT', 'Read Only User', 'viewer');
+
 -- Insert sample devices for testing
 INSERT IGNORE INTO devices (device_id, name, description, device_type) VALUES
 ('test_01', 'Test Vehicle 1', 'Sample vehicle for testing', 'vehicle'),

@@ -14,6 +14,8 @@ class GPSTrackerDashboard {
         this.wsReconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.reconnectDelay = 1000;
+        this.authToken = null;
+        this.currentUser = null;
         this.pollingInterval = null;
         this.isTrailsEnabled = false;
         this.isClustersEnabled = false;
@@ -31,6 +33,11 @@ class GPSTrackerDashboard {
 
     async init() {
         console.log('Initializing GPS Tracker Dashboard...');
+
+        // Check authentication
+        if (!this.checkAuthentication()) {
+            return;
+        }
 
         // Initialize map
         this.initMap();
@@ -51,6 +58,99 @@ class GPSTrackerDashboard {
         this.startPolling();
 
         console.log('Dashboard initialized successfully');
+    }
+
+    checkAuthentication() {
+        // Check if user is logged in
+        const token = localStorage.getItem('gps_tracker_token');
+        const user = localStorage.getItem('gps_tracker_user');
+        
+        if (!token || !user) {
+            console.log('No authentication token found, redirecting to login...');
+            window.location.href = 'login.html';
+            return false;
+        }
+        
+        try {
+            this.authToken = token;
+            this.currentUser = JSON.parse(user);
+            console.log('User authenticated:', this.currentUser.username);
+            
+            // Add user info to header
+            this.updateUserInfo();
+            return true;
+        } catch (error) {
+            console.error('Invalid user data, redirecting to login...');
+            this.logout();
+            return false;
+        }
+    }
+
+    updateUserInfo() {
+        // Add user info to header if user is authenticated
+        const headerRight = document.querySelector('.header-right');
+        if (headerRight && this.currentUser) {
+            // Create user menu
+            const userMenu = document.createElement('div');
+            userMenu.className = 'user-menu';
+            userMenu.innerHTML = `
+                <div class="user-info">
+                    <span class="user-name">${this.currentUser.username}</span>
+                    <span class="user-role">${this.currentUser.role}</span>
+                </div>
+                <button class="logout-btn" id="logoutBtn" title="Logout">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                    </svg>
+                </button>
+            `;
+            
+            // Insert before connection status
+            const connectionStatus = document.querySelector('.connection-status');
+            if (connectionStatus) {
+                headerRight.insertBefore(userMenu, connectionStatus);
+            }
+            
+            // Add logout event listener
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => this.logout());
+            }
+        }
+    }
+
+    logout() {
+        // Clear authentication data
+        localStorage.removeItem('gps_tracker_token');
+        localStorage.removeItem('gps_tracker_user');
+        
+        // Redirect to login
+        window.location.href = 'login.html';
+    }
+
+    async authenticatedFetch(url, options = {}) {
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+
+        if (this.authToken) {
+            headers['Authorization'] = `Bearer ${this.authToken}`;
+        }
+
+        const response = await fetch(url, {
+            ...options,
+            headers
+        });
+
+        // If unauthorized, redirect to login
+        if (response.status === 401) {
+            console.log('Authentication expired, redirecting to login...');
+            this.logout();
+            return null;
+        }
+
+        return response;
     }
 
     initMap() {
@@ -152,7 +252,7 @@ class GPSTrackerDashboard {
         if (mobileMenuToggle && sidebar) {
             mobileMenuToggle.addEventListener('click', () => {
                 isSidebarVisible = !isSidebarVisible;
-                
+
                 if (isSidebarVisible) {
                     sidebar.classList.remove('hidden');
                     mobileMenuToggle.setAttribute('aria-expanded', 'true');
@@ -205,8 +305,8 @@ class GPSTrackerDashboard {
         try {
             console.log('Loading initial data...');
 
-            const response = await fetch('/api/positions');
-            if (!response.ok) {
+            const response = await this.authenticatedFetch('/api/positions');
+            if (!response || !response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
@@ -469,8 +569,8 @@ class GPSTrackerDashboard {
 
     async updateStats() {
         try {
-            const response = await fetch('/api/stats');
-            if (!response.ok) {
+            const response = await this.authenticatedFetch('/api/stats');
+            if (!response || !response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
 
