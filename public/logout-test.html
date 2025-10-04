@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout System Test - GPS Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+        }
+        .test-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-primary);
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary-gold);
+        }
+        .test-button {
+            background: var(--primary-gold);
+            color: var(--bg-primary);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: var(--transition);
+        }
+        .test-button:hover {
+            background: #e6b84c;
+            transform: translateY(-1px);
+        }
+        .test-button.danger {
+            background: #ff6b6b;
+        }
+        .test-button.danger:hover {
+            background: #ff5252;
+        }
+        .status {
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin: 1rem 0;
+        }
+        .status.success {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            color: #2ecc71;
+        }
+        .status.error {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+        }
+        .status.info {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            color: #3498db;
+        }
+        .user-info {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin: 1rem 0;
+        }
+        .logout-demo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔐 Logout System Test</h1>
+        
+        <div class="test-section">
+            <h2>Current Authentication Status</h2>
+            <div id="authStatus" class="status info">Checking authentication status...</div>
+            <div id="userInfo" class="user-info" style="display: none;">
+                <h3>Logged in as:</h3>
+                <p><strong>Username:</strong> <span id="username"></span></p>
+                <p><strong>Email:</strong> <span id="email"></span></p>
+                <p><strong>Role:</strong> <span id="role"></span></p>
+                <p><strong>Token:</strong> <span id="tokenPreview"></span></p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Login</h2>
+            <p>Login with demo credentials to test the logout system:</p>
+            <button class="test-button" onclick="testLogin()">Login as Demo User</button>
+            <button class="test-button" onclick="testLoginAdmin()">Login as Admin</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Logout System Demo</h2>
+            <p>The logout button appears in the user menu dropdown when you're logged in:</p>
+            
+            <div class="logout-demo">
+                <div style="flex: 1;">
+                    <h4>📍 Where to Find Logout:</h4>
+                    <ol>
+                        <li>Look at the <strong>top-right corner</strong> of the dashboard</li>
+                        <li>You'll see your <strong>username and role</strong> displayed</li>
+                        <li>Click on the <strong>user menu icon</strong> (👤)</li>
+                        <li>A dropdown menu will appear</li>
+                        <li>Click <strong>"Logout"</strong> at the bottom (red logout icon)</li>
+                    </ol>
+                </div>
+                <div style="flex: 1;">
+                    <h4>🎯 Logout Features:</h4>
+                    <ul>
+                        <li>✅ Server-side logout API call</li>
+                        <li>✅ Database audit trail update</li>
+                        <li>✅ Local storage cleanup</li>
+                        <li>✅ WebSocket connection close</li>
+                        <li>✅ Redirect to login page</li>
+                        <li>✅ Success notification</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <button class="test-button danger" onclick="testLogout()" id="logoutBtn" disabled>Test Logout</button>
+            <button class="test-button" onclick="goToDashboard()" id="dashboardBtn" disabled>Go to Dashboard</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Logout API Test</h2>
+            <p>Test the logout API endpoint directly:</p>
+            <button class="test-button" onclick="testLogoutAPI()" id="apiLogoutBtn" disabled>Test Logout API</button>
+            <div id="apiResult" class="status" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentToken = null;
+        let currentUser = null;
+
+        // Check authentication status on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuthStatus();
+        });
+
+        function checkAuthStatus() {
+            const token = localStorage.getItem('gps_tracker_token');
+            const user = localStorage.getItem('gps_tracker_user');
+            
+            if (token && user) {
+                try {
+                    currentToken = token;
+                    currentUser = JSON.parse(user);
+                    
+                    document.getElementById('authStatus').innerHTML = '✅ <strong>Authenticated</strong> - You are logged in!';
+                    document.getElementById('authStatus').className = 'status success';
+                    
+                    document.getElementById('userInfo').style.display = 'block';
+                    document.getElementById('username').textContent = currentUser.username;
+                    document.getElementById('email').textContent = currentUser.email;
+                    document.getElementById('role').textContent = currentUser.role;
+                    document.getElementById('tokenPreview').textContent = token.substring(0, 20) + '...';
+                    
+                    // Enable logout buttons
+                    document.getElementById('logoutBtn').disabled = false;
+                    document.getElementById('dashboardBtn').disabled = false;
+                    document.getElementById('apiLogoutBtn').disabled = false;
+                } catch (error) {
+                    showAuthError('Invalid user data in localStorage');
+                }
+            } else {
+                showAuthError('Not authenticated - Please login first');
+            }
+        }
+
+        function showAuthError(message) {
+            document.getElementById('authStatus').innerHTML = '❌ <strong>Not Authenticated</strong> - ' + message;
+            document.getElementById('authStatus').className = 'status error';
+            document.getElementById('userInfo').style.display = 'none';
+        }
+
+        async function testLogin() {
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'demo', password: 'testpass123' })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('gps_tracker_token', data.token);
+                    localStorage.setItem('gps_tracker_user', JSON.stringify(data.user));
+                    
+                    showStatus('success', 'Login successful! Refresh the page to see your status.');
+                    setTimeout(() => checkAuthStatus(), 1000);
+                } else {
+                    showStatus('error', 'Login failed: ' + data.error);
+                }
+            } catch (error) {
+                showStatus('error', 'Login error: ' + error.message);
+            }
+        }
+
+        async function testLoginAdmin() {
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'admin', password: 'testpass123' })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('gps_tracker_token', data.token);
+                    localStorage.setItem('gps_tracker_user', JSON.stringify(data.user));
+                    
+                    showStatus('success', 'Admin login successful! Refresh the page to see your status.');
+                    setTimeout(() => checkAuthStatus(), 1000);
+                } else {
+                    showStatus('error', 'Admin login failed: ' + data.error);
+                }
+            } catch (error) {
+                showStatus('error', 'Admin login error: ' + error.message);
+            }
+        }
+
+        async function testLogout() {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Clear local storage
+                    localStorage.removeItem('gps_tracker_token');
+                    localStorage.removeItem('gps_tracker_user');
+                    
+                    showStatus('success', 'Logout successful! Redirecting to login page...');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    showStatus('error', 'Logout failed: ' + data.error);
+                }
+            } catch (error) {
+                showStatus('error', 'Logout error: ' + error.message);
+            }
+        }
+
+        async function testLogoutAPI() {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                const data = await response.json();
+                const resultDiv = document.getElementById('apiResult');
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = '✅ <strong>Logout API Success:</strong><br>' + 
+                        'Message: ' + data.message + '<br>' +
+                        'Timestamp: ' + data.timestamp;
+                    resultDiv.className = 'status success';
+                } else {
+                    resultDiv.innerHTML = '❌ <strong>Logout API Error:</strong><br>' + data.error;
+                    resultDiv.className = 'status error';
+                }
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                const resultDiv = document.getElementById('apiResult');
+                resultDiv.innerHTML = '❌ <strong>API Error:</strong><br>' + error.message;
+                resultDiv.className = 'status error';
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        function goToDashboard() {
+            window.location.href = '/';
+        }
+
+        function showStatus(type, message) {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+            
+            const container = document.querySelector('.test-container');
+            container.appendChild(statusDiv);
+            
+            setTimeout(() => {
+                statusDiv.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
